@@ -1,5 +1,5 @@
 # crackme-challenges
-Reverse Engeneering Crackme.org / CTF challenges with my solutions and explanations. 
+Reverse Engineering Crackme.org / CTF challenges with my solutions and explanations. 
 
 This repository was created out of my interest in the security field.
 
